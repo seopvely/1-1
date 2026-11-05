@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>영화 티어리스트</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, "Noto Sans KR", sans-serif;
+      background: #111827;
+      color: #f9fafb;
+    }
+
+    header {
+      padding: 28px 16px;
+      text-align: center;
+      background: #020617;
+      border-bottom: 1px solid #374151;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    header p {
+      margin: 0;
+      color: #9ca3af;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+    }
+
+    section {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    input,
+    button {
+      font: inherit;
+    }
+
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid #4b5563;
+      background: #111827;
+      color: #f9fafb;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #60a5fa;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 13px;
+      background: #60a5fa;
+      color: #08111f;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button.secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    button.success {
+      background: #34d399;
+      color: #052e1b;
+    }
+
+    button.danger {
+      background: #f87171;
+      color: #3b0808;
+    }
+
+    .notice {
+      padding: 12px;
+      margin-bottom: 14px;
+      border-radius: 12px;
+      background: rgba(96, 165, 250, 0.12);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      color: #d1d5db;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      font-size: 14px;
+      color: #d1d5db;
+      font-weight: 700;
+    }
+
+    .hint {
+      color: #9ca3af;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .movie-list {
+      display: grid;
+      gap: 10px;
+      max-height: 520px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .result-card,
+    .movie-card {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 10px;
+      align-items: center;
+      background: #111827;
+      border: 1px solid #4b5563;
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .poster {
+      width: 58px;
+      height: 82px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: white;
+      font-size: 24px;
+      font-weight: 900;
+      background: linear-gradient(145deg, #2563eb, #7c3aed);
+    }
+
+    .poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .movie-title {
+      font-weight: 800;
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+
+    .movie-meta {
+      color: #9ca3af;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .tier-board {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .tier-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      min-height: 124px;
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .tier-label {
+      display: grid;
+      place-items: center;
+      font-size: 32px;
+      font-weight: 900;
+      color: #111827;
+    }
+
+    .tier-label.S { background: #ef4444; }
+    .tier-label.A { background: #f97316; }
+    .tier-label.B { background: #eab308; }
+    .tier-label.C { background: #22c55e; }
+    .tier-label.D { background: #3b82f6; }
+
+    .dropzone {
+      min-height: 122px;
+      padding: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 10px;
+    }
+
+    .dropzone.drag-over {
+      background: rgba(96, 165, 250, 0.18);
+    }
+
+    .movie-card {
+      width: 235px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .empty {
+      color: #9ca3af;
+      font-size: 14px;
+      align-self: center;
+      padding: 8px;
+    }
+
+    .pool {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px dashed #6b7280;
+      background: #111827;
+    }
+
+    .pool-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .pool-title small {
+      color: #9ca3af;
+      font-weight: normal;
+    }
+
+    .share-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid #374151;
+      background: #111827;
+    }
+
+    .share-box input {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .saved-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .saved-item {
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #4b5563;
+      background: #111827;
+      cursor: pointer;
+    }
+
+    .saved-item:hover {
+      border-color: #60a5fa;
+    }
+
+    .saved-item span {
+      display: block;
+      margin-top: 4px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 99;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(420px, 100%);
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid #4b5563;
+      background: #1f2937;
+    }
+
+    .grade-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .grade-S { background: #ef4444; color: #111827; }
+    .grade-A { background: #f97316; color: #111827; }
+    .grade-B { background: #eab308; color: #111827; }
+    .grade-C { background: #22c55e; color: #111827; }
+    .grade-D { background: #3b82f6; color: #111827; }
+
+    footer {
+      padding: 30px 16px;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      main {
+        padding: 12px;
+      }
+
+      .search-box {
+        flex-direction: column;
+      }
+
+      .tier-row {
+        grid-template-columns: 56px 1fr;
+      }
+
+      .tier-label {
+        font-size: 24px;
+      }
+
+      .movie-card {
+        width: 100%;
+      }
+
+      .button-row button {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>영화 티어리스트</h1>
+    <p>TMDB에서 영화를 검색하고 S/A/B/C/D 등급에 배치하세요.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>영화 검색</h2>
+
+      <div class="notice">
+        TMDB API Key를 입력한 뒤 영화를 검색하세요.<br />
+        API Key는 이 브라우저에만 저장됩니다.
+      </div>
+
+      <div class="field">
+        <label for="tmdbKeyInput">TMDB API Key</label>
+        <input id="tmdbKeyInput" type="password" placeholder="TMDB API Key 입력" />
+        <div class="button-row">
+          <button id="saveApiKeyButton">API Key 저장</button>
+          <button class="secondary" id="clearApiKeyButton">삭제</button>
+        </div>
+        <div class="hint">
+          TMDB v3 API Key를 입력하세요.
+        </div>
+      </div>
+
+      <div class="search-box">
+        <input id="searchInput" type="search" placeholder="영화 제목 검색 예: 기생충, 인터스텔라" />
+        <button id="searchButton">검색</button>
+      </div>
+
+      <div id="searchStatus" class="hint"></div>
+      <br />
+
+      <div id="searchResults" class="movie-list"></div>
+
+      <h2 style="margin-top:24px;">저장된 티어리스트</h2>
+      <div id="savedLists" class="saved-list"></div>
+    </section>
+
+    <section>
+      <h2>내 티어표</h2>
+
+      <div class="field">
+        <label for="listTitle">티어리스트 제목</label>
+        <input id="listTitle" type="text" value="나의 영화 티어리스트" />
+      </div>
+
+      <div class="button-row">
+        <button class="success" id="saveButton">저장</button>
+        <button id="shareButton">공유 링크</button>
+        <button id="imageButton">이미지 저장</button>
+        <button class="danger" id="resetButton">초기화</button>
+      </div>
+
+      <div class="share-box">
+        <strong>공유 링크</strong>
+        <input id="shareLink" type="text" readonly placeholder="공유 링크 버튼을 누르면 생성됩니다." />
+      </div>
+
+      <div class="pool">
+        <div class="pool-title">
+          <span>대기 중인 영화</span>
+          <small>PC: 드래그 / 모바일: 영화 클릭 후 등급 선택</small>
+        </div>
+        <div id="poolZone" class="dropzone" data-tier="POOL"></div>
+      </div>
+
+      <div id="tierBoard" class="tier-board"></div>
+    </section>
+  </main>
+
+  <div id="gradeModal" class="modal-backdrop">
+    <div class="modal">
+      <h2 id="modalTitle">등급 선택</h2>
+      <p style="color:#9ca3af;">선택한 영화를 어느 등급에 배치할까요?</p>
+
+      <div class="grade-buttons">
+        <button class="grade-S" data-grade="S">S</button>
+        <button class="grade-A" data-grade="A">A</button>
+        <button class="grade-B" data-grade="B">B</button>
+        <button class="grade-C" data-grade="C">C</button>
+        <button class="grade-D" data-grade="D">D</button>
+        <button class="secondary" data-grade="POOL">대기</button>
+      </div>
+
+      <div class="button-row">
+        <button class="danger" id="deleteMovieButton">삭제</button>
+        <button class="secondary" id="closeModalButton">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Movie Tier List with TMDB API
+  </footer>
+
+  <script>
+    const STORAGE_CURRENT = "movie_tier_current_no_sample_v1";
+    const STORAGE_SAVED = "movie_tier_saved_no_sample_v1";
+    const STORAGE_TMDB_KEY = "movie_tier_tmdb_key_v1";
+
+    const grades = ["S", "A", "B", "C", "D"];
+
+    let state = createEmptyState();
+    let selectedMovieId = null;
+
+    const tmdbKeyInput = document.getElementById("tmdbKeyInput");
+    const saveApiKeyButton = document.getElementById("saveApiKeyButton");
+    const clearApiKeyButton = document.getElementById("clearApiKeyButton");
+
+    const searchInput = document.getElementById("searchInput");
+    const searchButton = document.getElementById("searchButton");
+    const searchStatus = document.getElementById("searchStatus");
+    const searchResults = document.getElementById("searchResults");
+
+    const tierBoard = document.getElementById("tierBoard");
+    const poolZone = document.getElementById("poolZone");
+    const listTitle = document.getElementById("listTitle");
+    const shareLink = document.getElementById("shareLink");
+    const savedLists = document.getElementById("savedLists");
+
+    const saveButton = document.getElementById("saveButton");
+    const shareButton = document.getElementById("shareButton");
+    const imageButton = document.getElementById("imageButton");
+    const resetButton = document.getElementById("resetButton");
+
+    const gradeModal = document.getElementById("gradeModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const closeModalButton = document.getElementById("closeModalButton");
+    const deleteMovieButton = document.getElementById("deleteMovieButton");
+
+    init();
+
+    function init() {
+      renderTierBoard();
+      bindEvents();
+
+      const savedApiKey = localStorage.getItem(STORAGE_TMDB_KEY);
+      if (savedApiKey) {
+        tmdbKeyInput.value = savedApiKey;
+      }
+
+      const sharedState = loadFromUrlHash();
+
+      if (sharedState) {
+        state = normalizeState(sharedState);
+        saveCurrent();
+      } else {
+        const saved = localStorage.getItem(STORAGE_CURRENT);
+
+        if (saved) {
+          try {
+            state = normalizeState(JSON.parse(saved));
+          } catch (error) {
+            state = createEmptyState();
+          }
+        }
+      }
+
+      listTitle.value = state.title;
+      renderMovies();
+      renderSavedLists();
+    }
+
+    function createEmptyState() {
+      return {
+        title: "나의 영화 티어리스트",
+        movies: {},
+        tiers: {
+          S: [],
+          A: [],
+          B: [],
+          C: [],
+          D: [],
+          POOL: []
+        }
+      };
+    }
+
+    function normalizeState(data) {
+      const empty = createEmptyState();
+
+      if (!data || typeof data !== "object") {
+        return empty;
+      }
+
+      return {
+        title: data.title || empty.title,
+        movies: data.movies || {},
+        tiers: {
+          S: Array.isArray(data.tiers?.S) ? data.tiers.S : [],
+          A: Array.isArray(data.tiers?.A) ? data.tiers.A : [],
+          B: Array.isArray(data.tiers?.B) ? data.tiers.B : [],
+          C: Array.isArray(data.tiers?.C) ? data.tiers.C : [],
+          D: Array.isArray(data.tiers?.D) ? data.tiers.D : [],
+          POOL: Array.isArray(data.tiers?.POOL) ? data.tiers.POOL : []
+        }
+      };
+    }
+
+    function bindEvents() {
+      saveApiKeyButton.addEventListener("click", saveApiKey);
+      clearApiKeyButton.addEventListener("click", clearApiKey);
+
+      searchButton.addEventListener("click", searchMovies);
+
+      searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          searchMovies();
+        }
+      });
+
+      listTitle.addEventListener("input", function () {
+        state.title = listTitle.value.trim() || "나의 영화 티어리스트";
+        saveCurrent();
+      });
+
+      saveButton.addEventListener("click", saveNamedList);
+      shareButton.addEventListener("click", createShareLink);
+      imageButton.addEventListener("click", exportAsImage);
+      resetButton.addEventListener("click", resetTierList);
+
+      closeModalButton.addEventListener("click", closeModal);
+
+      gradeModal.addEventListener("click", function (event) {
+        if (event.target === gradeModal) {
+          closeModal();
+        }
+      });
+
+      document.querySelectorAll("[data-grade]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const grade = button.dataset.grade;
+          if (selectedMovieId) {
+            moveMovieToTier(selectedMovieId, grade);
+            closeModal();
+          }
+        });
+      });
+
+      deleteMovieButton.addEventListener("click", function () {
+        if (!selectedMovieId) return;
+
+        if (!confirm("이 영화를 티어리스트에서 삭제할까요?")) {
+          return;
+        }
+
+        removeMovieCompletely(selectedMovieId);
+        closeModal();
+      });
+    }
+
+    function saveApiKey() {
+      const key = tmdbKeyInput.value.trim();
+
+      if (!key) {
+        alert("TMDB API Key를 입력해주세요.");
+        return;
+      }
+
+      localStorage.setItem(STORAGE_TMDB_KEY, key);
+      alert("API Key가 저장되었습니다.");
+    }
+
+    function clearApiKey() {
+      localStorage.removeItem(STORAGE_TMDB_KEY);
+      tmdbKeyInput.value = "";
+      alert("API Key가 삭제되었습니다.");
+    }
+
+    async function searchMovies() {
+      const query = searchInput.value.trim();
+      const apiKey = tmdbKeyInput.value.trim() || localStorage.getItem(STORAGE_TMDB_KEY);
+
+      if (!apiKey) {
+        searchStatus.textContent = "TMDB API Key를 먼저 입력해주세요.";
+        return;
+      }
+
+      if (!query) {
+        searchStatus.textContent = "검색어를 입력해주세요.";
+        return;
+      }
+
+      searchStatus.textContent = "검색 중입니다...";
+      searchResults.innerHTML = "";
+
+      try {
+        const url =
+          "https://api.themoviedb.org/3/search/movie" +
+          `?api_key=${encodeURIComponent(apiKey)}` +
+          `&query=${encodeURIComponent(query)}` +
+          "&language=ko-KR" +
+          "&include_adult=false" +
+          "&page=1";
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error("TMDB API 요청에 실패했습니다.");
+        }
+
+        const data = await response.json();
+        const movies = Array.isArray(data.results) ? data.results : [];
+
+        if (movies.length === 0) {
+          searchStatus.textContent = "검색 결과가 없습니다.";
+          return;
+        }
+
+        searchStatus.textContent = `${movies.length}개의 검색 결과가 있습니다.`;
+        renderSearchResults(movies);
+      } catch (error) {
+        console.error(error);
+        searchStatus.textContent = "검색 중 오류가 발생했습니다. API Key 또는 네트워크 상태를 확인해주세요.";
+      }
+    }
+
+    function renderSearchResults(movies) {
+      searchResults.innerHTML = movies
+        .map(function (movie) {
+          const movieId = `tmdb_${movie.id}`;
+          const title = movie.title || movie.original_title || "제목 없음";
+          const year = movie.release_date ? movie.release_date.slice(0, 4) : "정보 없음";
+          const rating = typeof movie.vote_average === "number" ? movie.vote_average.toFixed(1) : "0.0";
+          const poster = movie.poster_path
+            ? `https://image.tmdb.org/t/p/w185${movie.poster_path}`
+            : "";
+
+          return `
+            <div class="result-card">
+              ${posterHtml(title, poster)}
+              <div>
+                <div class="movie-title">${escapeHtml(title)}</div>
+                <div class="movie-meta">${escapeHtml(year)} · 평점 ${escapeHtml(rating)}</div>
+                <button
+                  onclick="addMovieFromSearch('${escapeAttr(movieId)}', '${escapeAttr(title)}', '${escapeAttr(year)}', '${escapeAttr(rating)}', '${escapeAttr(poster)}')"
+                >
+                  대기 목록에 추가
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function addMovieFromSearch(id, title, year, rating, poster) {
+      if (!state.movies[id]) {
+        state.movies[id] = {
+          id,
+          title,
+          year,
+          rating,
+          poster
+        };
+      }
+
+      const existsInAnyTier = Object.values(state.tiers).some(function (ids) {
+        return ids.includes(id);
+      });
+
+      if (!existsInAnyTier) {
+        state.tiers.POOL.push(id);
+      }
+
+      renderMovies();
+      saveCurrent();
+    }
+
+    function renderTierBoard() {
+      tierBoard.innerHTML = grades
+        .map(function (grade) {
+          return `
+            <div class="tier-row">
+              <div class="tier-label ${grade}">${grade}</div>
+              <div class="dropzone" data-tier="${grade}"></div>
+            </div>
+          `;
+        })
+        .join("");
+
+      document.querySelectorAll(".dropzone").forEach(function (zone) {
+        zone.addEventListener("dragover", function (event) {
+          event.preventDefault();
+          zone.classList.add("drag-over");
+        });
+
+        zone.addEventListener("dragleave", function () {
+          zone.classList.remove("drag-over");
+        });
+
+        zone.addEventListener("drop", function (event) {
+          event.preventDefault();
+          zone.classList.remove("drag-over");
+
+          const movieId = event.dataTransfer.getData("text/plain");
+          const targetTier = zone.dataset.tier;
+
+          if (movieId && targetTier) {
+            moveMovieToTier(movieId, targetTier);
+          }
+        });
+      });
+    }
+
+    function renderMovies() {
+      renderZone(poolZone, "POOL");
+
+      grades.forEach(function (grade) {
+        const zone = document.querySelector(`.dropzone[data-tier="${grade}"]`);
+        renderZone(zone, grade);
+      });
+    }
+
+    function renderZone(zone, tier) {
+      const movieIds = state.tiers[tier] || [];
+
+      if (movieIds.length === 0) {
+        zone.innerHTML = `<div class="empty">영화를 여기에 놓으세요.</div>`;
+        return;
+      }
+
+      zone.innerHTML = movieIds
+        .map(function (id) {
+          const movie = state.movies[id];
+          if (!movie) return "";
+          return movieCardHtml(movie);
+        })
+        .join("");
+
+      zone.querySelectorAll(".movie-card").forEach(function (card) {
+        card.addEventListener("dragstart", function (event) {
+          event.dataTransfer.setData("text/plain", card.dataset.id);
+        });
+
+        card.addEventListener("click", function () {
+          openModal(card.dataset.id);
+        });
+      });
+    }
+
+    function movieCardHtml(movie) {
+      return `
+        <div class="movie-card" draggable="true" data-id="${escapeAttr(movie.id)}">
+          ${posterHtml(movie.title, movie.poster)}
+          <div>
+            <div class="movie-title">${escapeHtml(movie.title)}</div>
+            <div class="movie-meta">
+              ${escapeHtml(movie.year)} · 평점 ${escapeHtml(movie.rating)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function posterHtml(title, poster) {
+      if (poster) {
+        return `
+          <div class="poster">
+            <img src="${escapeAttr(poster)}" alt="${escapeAttr(title)} 포스터" loading="lazy">
+          </div>
+        `;
+      }
+
+      return `
+        <div class="poster">
+          ${escapeHtml(String(title || "?").charAt(0))}
+        </div>
+      `;
+    }
+
+    function moveMovieToTier(movieId, targetTier) {
+      removeMovieFromAllTiers(movieId);
+
+      if (!state.tiers[targetTier]) {
+        state.tiers[targetTier] = [];
+      }
+
+      state.tiers[targetTier].push(movieId);
+
+      renderMovies();
+      saveCurrent();
+    }
+
+    function removeMovieFromAllTiers(movieId) {
+      Object.keys(state.tiers).forEach(function (tier) {
+        state.tiers[tier] = state.tiers[tier].filter(function (id) {
+          return id !== movieId;
+        });
+      });
+    }
+
+    function removeMovieCompletely(movieId) {
+      removeMovieFromAllTiers(movieId);
+      delete state.movies[movieId];
+
+      renderMovies();
+      saveCurrent();
+    }
+
+    function openModal(movieId) {
+      selectedMovieId = movieId;
+      const movie = state.movies[movieId];
+
+      if (!movie) return;
+
+      modalTitle.textContent = movie.title;
+      gradeModal.classList.add("show");
+    }
+
+    function closeModal() {
+      selectedMovieId = null;
+      gradeModal.classList.remove("show");
+    }
+
+    function saveCurrent() {
+      state.title = listTitle.value.trim() || state.title || "나의 영화 티어리스트";
+      localStorage.setItem(STORAGE_CURRENT, JSON.stringify(state));
+    }
+
+    function saveNamedList() {
+      saveCurrent();
+
+      const saved = getSavedLists();
+      const id = Date.now().toString();
+
+      saved.unshift({
+        id,
+        title: state.title,
+        createdAt: new Date().toLocaleString("ko-KR"),
+        data: state
+      });
+
+      localStorage.setItem(STORAGE_SAVED, JSON.stringify(saved));
+      renderSavedLists();
+
+      alert("티어리스트가 저장되었습니다.");
+    }
+
+    function getSavedLists() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_SAVED)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function renderSavedLists() {
+      const saved = getSavedLists();
+
+      if (saved.length === 0) {
+        savedLists.innerHTML = `<div class="hint">저장된 티어리스트가 없습니다.</div>`;
+        return;
+      }
+
+      savedLists.innerHTML = saved
+        .map(function (item) {
+          return `
+            <div class="saved-item" onclick="loadSavedList('${escapeAttr(item.id)}')">
+              <strong>${escapeHtml(item.title)}</strong>
+              <span>${escapeHtml(item.createdAt)}</span>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function loadSavedList(id) {
+      const saved = getSavedLists();
+      const item = saved.find(function (list) {
+        return list.id === id;
+      });
+
+      if (!item) {
+        alert("저장 데이터를 찾을 수 없습니다.");
+        return;
+      }
+
+      state = normalizeState(item.data);
+      listTitle.value = state.title;
+
+      renderMovies();
+      saveCurrent();
+    }
+
+    function createShareLink() {
+      saveCurrent();
+
+      try {
+        const json = JSON.stringify(state);
+        const encoded = btoa(unescape(encodeURIComponent(json)));
+        const url = `${location.origin}${location.pathname}#data=${encoded}`;
+
+        shareLink.value = url;
+        shareLink.select();
+
+        navigator.clipboard?.writeText(url);
+        alert("공유 링크가 생성되었습니다.");
+      } catch (error) {
+        alert("공유 링크 생성 중 오류가 발생했습니다.");
+      }
+    }
+
+    function loadFromUrlHash() {
+      if (!location.hash.startsWith("#data=")) {
+        return null;
+      }
+
+      try {
+        const encoded = location.hash.replace("#data=", "");
+        const json = decodeURIComponent(escape(atob(encoded)));
+        return JSON.parse(json);
+      } catch (error) {
+        alert("공유 데이터를 불러오지 못했습니다.");
+        return null;
+      }
+    }
+
+    function resetTierList() {
+      if (!confirm("정말 초기화할까요? 현재 티어리스트가 모두 삭제됩니다.")) {
+        return;
+      }
+
+      state = createEmptyState();
+      listTitle.value = state.title;
+      shareLink.value = "";
+      searchResults.innerHTML = "";
+      searchStatus.textContent = "";
+
+      renderMovies();
+      saveCurrent();
+    }
+
+    function exportAsImage() {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const width = 1200;
+      const rowHeight = 170;
+      const headerHeight = 120;
+      const rows = ["S", "A", "B", "C", "D", "POOL"];
+      const height = headerHeight + rows.length * rowHeight + 40;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.fillStyle = "#111827";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = "#f9fafb";
+      ctx.font = "bold 42px Arial";
+      ctx.fillText(state.title || "나의 영화 티어리스트", 40, 70);
+
+      ctx.font = "20px Arial";
+      ctx.fillStyle = "#9ca3af";
+      ctx.fillText("Movie Tier List", 40, 105);
+
+      const labelColors = {
+        S: "#ef4444",
+        A: "#f97316",
+        B: "#eab308",
+        C: "#22c55e",
+        D: "#3b82f6",
+        POOL: "#6b7280"
+      };
+
+      rows.forEach(function (tier, index) {
+        const y = headerHeight + index * rowHeight;
+
+        ctx.fillStyle = "#020617";
+        ctx.fillRect(40, y, width - 80, rowHeight - 12);
+
+        ctx.fillStyle = labelColors[tier];
+        ctx.fillRect(40, y, 110, rowHeight - 12);
+
+        ctx.fillStyle = "#111827";
+        ctx.font = "bold 36px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(tier === "POOL" ? "대기" : tier, 95, y + (rowHeight - 12) / 2);
+
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+
+        const movieIds = state.tiers[tier] || [];
+        const startX = 170;
+        let cardX = startX;
+        let cardY = y + 18;
+
+        movieIds.forEach(function (id) {
+          const movie = state.movies[id];
+          if (!movie) return;
+
+          const cardWidth = 190;
+          const cardHeight = 120;
+
+          if (cardX + cardWidth > width - 50) {
+            cardX = startX;
+            cardY += cardHeight + 12;
+          }
+
+          ctx.fillStyle = "#1f2937";
+          roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 12);
+          ctx.fill();
+
+          ctx.fillStyle = "#60a5fa";
+          roundRect(ctx, cardX + 12, cardY + 14, 48, 68, 8);
+          ctx.fill();
+
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 22px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            String(movie.title || "?").charAt(0),
+            cardX + 36,
+            cardY + 48
+          );
+
+          ctx.textAlign = "left";
+          ctx.textBaseline = "alphabetic";
+
+          ctx.fillStyle = "#f9fafb";
+          ctx.font = "bold 17px Arial";
+          wrapText(ctx, movie.title, cardX + 72, cardY + 34, 105, 20, 2);
+
+          ctx.fillStyle = "#9ca3af";
+          ctx.font = "14px Arial";
+          ctx.fillText(
+            `${movie.year || "정보 없음"} · 평점 ${movie.rating || "-"}`,
+            cardX + 72,
+            cardY + 94
+          );
+
+          cardX += cardWidth + 12;
+        });
+      });
+
+      const link = document.createElement("a");
+      link.download = "movie-tier-list.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+      const words = String(text || "").split("");
+      let line = "";
+      let lines = [];
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i];
+        const metrics = ctx.measureText(testLine);
+
+        if (metrics.width > maxWidth && line !== "") {
+          lines.push(line);
+          line = words[i];
+
+          if (lines.length === maxLines) {
+            break;
+          }
+        } else {
+          line = testLine;
+        }
+      }
+
+      if (lines.length < maxLines && line) {
+        lines.push(line);
+      }
+
+      lines = lines.slice(0, maxLines);
+
+      lines.forEach(function (lineText, index) {
+        let output = lineText;
+
+        if (index === maxLines - 1 && words.join("").length > lines.join("").length) {
+          output = lineText.slice(0, Math.max(0, lineText.length - 1)) + "…";
+        }
+
+        ctx.fillText(output, x, y + index * lineHeight);
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value);
+    }
+  </script>
+</body>
+</html>

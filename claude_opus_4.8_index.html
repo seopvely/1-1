@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영화 티어리스트</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: "맑은 고딕", sans-serif;
+    margin: 0; padding: 16px;
+    background: #1a1a2e; color: #eee;
+  }
+  h1 { text-align: center; font-size: 1.4rem; }
+  .search-box { display: flex; gap: 8px; max-width: 500px; margin: 0 auto 16px; }
+  .search-box input {
+    flex: 1; padding: 10px; border-radius: 6px; border: none; font-size: 1rem;
+  }
+  .search-box button {
+    padding: 10px 16px; border: none; border-radius: 6px;
+    background: #e94560; color: #fff; cursor: pointer; font-size: 1rem;
+  }
+  #searchResults {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    max-width: 900px; margin: 0 auto 24px; justify-content: center;
+  }
+  .movie-card {
+    width: 80px; cursor: grab; text-align: center; font-size: 0.7rem;
+  }
+  .movie-card img { width: 80px; border-radius: 4px; display: block; }
+  .tier-row {
+    display: flex; align-items: stretch; margin: 6px auto; max-width: 900px;
+    border-radius: 6px; overflow: hidden;
+  }
+  .tier-label {
+    width: 60px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-weight: bold; color: #000;
+  }
+  .tier-drop {
+    flex: 1; min-height: 90px; background: #16213e;
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 6px;
+  }
+  .tier-S .tier-label { background: #ff7f7f; }
+  .tier-A .tier-label { background: #ffbf7f; }
+  .tier-B .tier-label { background: #ffff7f; }
+  .tier-C .tier-label { background: #7fff7f; }
+  .tier-D .tier-label { background: #7fbfff; }
+  .hint { text-align: center; font-size: 0.8rem; color: #888; margin-top: 20px; }
+</style>
+</head>
+<body>
+  <h1>🎬 영화 티어리스트</h1>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="영화 제목을 검색하세요">
+    <button onclick="searchMovies()">검색</button>
+  </div>
+
+  <div id="searchResults"></div>
+
+  <div id="tierContainer"></div>
+
+  <p class="hint">검색 결과의 포스터를 티어 칸으로 드래그하세요 (PC 기준)</p>
+
+<script>
+  // ⚠️ 아래에 본인의 TMDB API 키를 넣으세요
+  const API_KEY = "b622cd1c0db38ebc4928effb5e04af16";
+
+  const tiers = ["S", "A", "B", "C", "D"];
+  const container = document.getElementById("tierContainer");
+
+  // 티어 행 생성
+  tiers.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "tier-row tier-" + t;
+    row.innerHTML = `
+      <div class="tier-label">${t}</div>
+      <div class="tier-drop" ondragover="event.preventDefault()" ondrop="drop(event)"></div>
+    `;
+    container.appendChild(row);
+  });
+
+  // 영화 검색 (TMDB API)
+  async function searchMovies() {
+    const query = document.getElementById("searchInput").value.trim();
+    if (!query) return;
+    if (API_KEY === "여기에_본인_TMDB_키_입력") {
+      alert("코드 안에 TMDB API 키를 먼저 입력해주세요!");
+      return;
+    }
+
+    const url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=ko-KR&query=${encodeURIComponent(query)}`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      showResults(data.results || []);
+    } catch (e) {
+      alert("검색 중 오류가 발생했어요. 키나 네트워크를 확인해주세요.");
+    }
+  }
+
+  // 검색 결과 표시
+  function showResults(movies) {
+    const box = document.getElementById("searchResults");
+    box.innerHTML = "";
+    movies.slice(0, 12).forEach(m => {
+      if (!m.poster_path) return;
+      const card = document.createElement("div");
+      card.className = "movie-card";
+      card.draggable = true;
+      card.id = "movie-" + m.id;
+      card.ondragstart = drag;
+      const year = m.release_date ? m.release_date.slice(0, 4) : "";
+      card.innerHTML = `
+        <img src="https://image.tmdb.org/t/p/w200${m.poster_path}" alt="${m.title}">
+        <div>${m.title} (${year})<br>⭐${m.vote_average.toFixed(1)}</div>
+      `;
+      box.appendChild(card);
+    });
+    if (box.innerHTML === "") box.innerHTML = "<p>검색 결과가 없어요.</p>";
+  }
+
+  // 드래그 앤 드롭
+  function drag(e) {
+    e.dataTransfer.setData("text", e.target.closest(".movie-card").id);
+  }
+  function drop(e) {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text");
+    const card = document.getElementById(id);
+    if (card) e.target.closest(".tier-drop").appendChild(card);
+  }
+</script>
+</body>
+</html>
